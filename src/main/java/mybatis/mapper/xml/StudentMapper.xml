@@ -7,7 +7,90 @@
         <result property="name" column="stu_name" />
     </resultMap>
 
+    <sql id="baseCulomns">
+        stu_id, stu_age, stu_name
+    </sql>
+
+    <!--动态key-->
+    <sql id="key">
+        <!--去除最后一个字符-->
+        <trim suffixOverrides=",">
+            <if test="id != null">
+                stu_id,
+            </if>
+            <if test="name != null">
+                stu_name,
+            </if>
+            <if test="age != null">
+                stu_age,
+            </if>
+        </trim>
+    </sql>
+
+    <!--动态value-->
+    <sql id="value">
+        <trim suffixOverrides=",">
+            <if test="id != null">
+                #{id},
+            </if>
+            <if test="name != null">
+                #{name},
+            </if>
+            <if test="age != null">
+                #{age},
+            </if>
+        </trim>
+    </sql>
+
+  <!--  <insert parameterType="student" id="addStudent">
+        INSERT INTO student (<include refid="baseCulomns"/>)
+        VALUES (#{id}, #{name}, #{age})
+    </insert>-->
     <insert parameterType="student" id="addStudent">
-        INSERT INTO student (stu_name, stu_age) VALUES (#{name}, #{age})
+        INSERT INTO student (<include refid="key"/>)
+        VALUES (<include refid="value"/>)
+    </insert>
+
+    <!--动态查询-->
+    <select id="getStudentList" parameterType="student" resultMap="studentMap">
+        SELECT <include refid="baseCulomns"/> FROM student
+        <where>
+            <if test="name != null">
+                AND stu_name = #{name}
+            </if>
+            <if test="age != null">
+                AND stu_age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <!--更新-->
+    <update id="updateStudent" parameterType="student">
+        UPDATE student
+        <set>
+            <if test="name != null">
+                stu_name = #{name}
+            </if>
+            <if test="age != null">
+                stu_age = #{age}
+            </if>
+        </set>
+        WHERE stu_id = #{id}
+    </update>
+
+    <!--删除-->
+    <delete id="deleteStudents" parameterType="list">
+        DELETE FROM student WHERE stu_id IN
+        <foreach collection="list" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--批量插入-->
+    <insert id="addStudents" parameterType="list">
+        INSERT INTO student (<include refid="baseCulomns"/>) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.age}, #{item.name})
+        </foreach>
     </insert>
 </mapper>
